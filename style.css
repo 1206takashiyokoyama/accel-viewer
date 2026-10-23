@@ -1,8 +1,6 @@
 body {
   font-family: sans-serif;
-  padding: 0.5rem;
-  margin: 0;
-  overflow: hidden; /* 画面内に収める */
+  padding: 1rem;
 }
 
 .controls button {
@@ -13,26 +11,16 @@ body {
 .layout {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  height: 100vh; /* 画面全体を使う */
-}
-
-.video-area {
-  flex: 0 0 200px; /* カメラの高さを固定 */
+  gap: 1rem;
 }
 
 .video-area video {
   width: 100%;
-  height: 100%;
-  object-fit: cover; /* はみ出さずに表示 */
+  max-height: 300px;
   background: black;
-}
-
-.chart-area {
-  flex: 0 0 200px; /* グラフの高さを固定 */
 }
 
 .chart-area canvas {
   width: 100%;
-  height: 100%;
+  height: 260px;
 }
