@@ -1,26 +1,56 @@
+/* 全体を画面に収める */
 body {
   font-family: sans-serif;
-  padding: 1rem;
+  margin: 0;
+  padding: 0.5rem;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ボタン群 */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .controls button {
-  margin: 0.3rem;
+  flex: 1;
+  min-width: 120px;
   padding: 0.6rem 1rem;
 }
 
+/* レイアウト全体 */
 .layout {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.5rem;
+  overflow: hidden; /* はみ出し防止 */
+}
+
+/* カメラ領域：画面の 40% を使う */
+.video-area {
+  flex: 0 0 40%;
+  max-height: 40%;
 }
 
 .video-area video {
   width: 100%;
-  max-height: 300px;
+  height: 100%;
+  object-fit: cover; /* 画面に収める */
   background: black;
+}
+
+/* グラフ領域：画面の 60% を使う */
+.chart-area {
+  flex: 1;
+  max-height: 60%;
 }
 
 .chart-area canvas {
   width: 100%;
-  height: 260px;
+  height: 100%;
 }
