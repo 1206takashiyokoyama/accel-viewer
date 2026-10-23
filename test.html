@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>加速度リアルタイム波形ビューア</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body { font-family: sans-serif; padding: 1rem; }
+    button { margin: 0.3rem; padding: 0.6rem 1rem; }
+    canvas { width: 100%; height: 260px; }
+  </style>
+</head>
+<body>
+
+<h2>加速度リアルタイム波形ビューア（横流れ）</h2>
+
+<button id="btnPermission">センサー許可（iOS）</button>
+<button id="btnStart">計測開始</button>
+<button id="btnStop">停止</button>
+<button id="btnExport">CSV保存</button>
+
+<p id="status">状態: 待機中</p>
+
+<canvas id="chart"></canvas>
+
+<script>
+let measuring = false;
+let dataLog = []; // CSV用ログ
+const MAX_POINTS = 300; // グラフに表示する点数（約数秒分）
+
+// Chart.js 初期化
+const ctx = document.getElementById("chart").getContext("2d");
+const chart = new Chart(ctx, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [
+      { label: "X", borderColor: "red", data: [], pointRadius: 0 },
+      { label: "Y", borderColor: "green", data: [], pointRadius: 0 },
+      { label: "Z", borderColor: "blue", data: [], pointRadius: 0 }
+    ]
+  },
+  options: {
+    animation: false,
+    responsive: true,
+    scales: {
+      x: { display: false },
+      y: { title: { display: true, text: "加速度 (m/s²)" } }
+    }
+  }
+});
+
+// 状態表示
+function setStatus(s) {
+  document.getElementById("status").textContent = "状態: " + s;
+}
+
+// iOS向けセンサー許可
+async function requestPermission() {
+  if (DeviceMotionEvent.requestPermission) {
+    const res = await DeviceMotionEvent.requestPermission();
+    setStatus(res === "granted" ? "センサー許可OK" : "拒否されました");
+  } else {
+    setStatus("許可不要");
+  }
+}
+
+// 計測開始
+function startMeasuring() {
+  if (measuring) return;
+  measuring = true;
+  setStatus("計測中");
+
+  window.addEventListener("devicemotion", onMotion);
+}
+
+// 計測停止
+function stopMeasuring() {
+  measuring = false;
+  setStatus("停止");
+  window.removeEventListener("devicemotion", onMotion);
+}
+
+// 波形更新（横に流れる）
+function updateChart(x, y, z) {
+  const labels = chart.data.labels;
+  const dx = chart.data.datasets[0].data;
+  const dy = chart.data.datasets[1].data;
+  const dz = chart.data.datasets[2].data;
+
+  labels.push(""); // ラベルは非表示なので空でOK
+  dx.push(x);
+  dy.push(y);
+  dz.push(z);
+
+  // 古いデータを削除（横流れ）
+  if (dx.length > MAX_POINTS) {
+    labels.shift();
+    dx.shift();
+    dy.shift();
+    dz.shift();
+  }
+
+  chart.update();
+}
+
+// センサーイベント
+function onMotion(e) {
+  const acc = e.accelerationIncludingGravity || e.acceleration;
+  if (!acc) return;
+
+  const ts = performance.now();
+  const x = acc.x || 0;
+  const y = acc.y || 0;
+  const z = acc.z || 0;
+
+  // グラフ更新（横流れ）
+  updateChart(x, y, z);
+
+  // CSVログ保存
+  dataLog.push({ ts, x, y, z });
+}
+
+// CSV保存
+function exportCSV() {
+  if (dataLog.length === 0) {
+    setStatus("データなし");
+    return;
+  }
+
+  let csv = "time_ms,x,y,z\n";
+  dataLog.forEach(d => {
+    csv += `${d.ts},${d.x},${d.y},${d.z}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "accel_data.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+
+  setStatus("CSV保存完了");
+}
+
+// ボタン紐付け
+document.getElementById("btnPermission").onclick = requestPermission;
+document.getElementById("btnStart").onclick = startMeasuring;
+document.getElementById("btnStop").onclick = stopMeasuring;
+document.getElementById("btnExport").onclick = exportCSV;
+
+</script>
+</body>
+</html>
