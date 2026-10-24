@@ -28,7 +28,29 @@ function setStatus(s) {
   document.getElementById("status").textContent = "状態: " + s;
 }
 
-// 計測開始
+// ------------------------------
+//  重力除去（ローパス＋ハイパス）
+// ------------------------------
+let gravity = { x: 0, y: 0, z: 0 };
+const alpha = 0.8;  // ローパス係数（0.8〜0.98が一般的）
+
+function removeGravity(acc) {
+  // ローパスで重力成分を推定
+  gravity.x = alpha * gravity.x + (1 - alpha) * acc.x;
+  gravity.y = alpha * gravity.y + (1 - alpha) * acc.y;
+  gravity.z = alpha * gravity.z + (1 - alpha) * acc.z;
+
+  // ハイパスで振動成分だけ抽出
+  return {
+    x: acc.x - gravity.x,
+    y: acc.y - gravity.y,
+    z: acc.z - gravity.z
+  };
+}
+
+// ------------------------------
+//  計測開始
+// ------------------------------
 function startMeasuring() {
   if (measuring) return;
   measuring = true;
@@ -36,14 +58,18 @@ function startMeasuring() {
   window.addEventListener("devicemotion", onMotion);
 }
 
-// 計測停止
+// ------------------------------
+//  計測停止
+// ------------------------------
 function stopMeasuring() {
   measuring = false;
   setStatus("停止");
   window.removeEventListener("devicemotion", onMotion);
 }
 
-// 波形更新
+// ------------------------------
+//  波形更新
+// ------------------------------
 function updateChart(x, y, z) {
   const labels = chart.data.labels;
   const dx = chart.data.datasets[0].data;
@@ -65,19 +91,26 @@ function updateChart(x, y, z) {
   chart.update();
 }
 
-// センサーイベント
+// ------------------------------
+//  センサーイベント
+// ------------------------------
 function onMotion(e) {
-  const acc = e.accelerationIncludingGravity || e.acceleration;
+  const acc = e.accelerationIncludingGravity;
   if (!acc) return;
 
-  const x = acc.x || 0;
-  const y = acc.y || 0;
-  const z = acc.z || 0;
+  // 重力除去
+  const filtered = removeGravity({
+    x: acc.x || 0,
+    y: acc.y || 0,
+    z: acc.z || 0
+  });
 
-  updateChart(x, y, z);
+  updateChart(filtered.x, filtered.y, filtered.z);
 }
 
-// カメラ開始
+// ------------------------------
+//  カメラ開始
+// ------------------------------
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -93,7 +126,9 @@ async function startCamera() {
   }
 }
 
-// ボタン紐付け
+// ------------------------------
+//  ボタン紐付け
+// ------------------------------
 document.getElementById("btnStart").onclick = () => {
   startCamera();
   startMeasuring();
