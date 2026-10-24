@@ -19,7 +19,8 @@ body {
 .controls button {
   flex: 1;
   min-width: 120px;
-  padding: 0.6rem 1rem;
+  padding: 0.8rem;
+  font-size: 1rem;
 }
 
 /* レイアウト全体 */
@@ -28,26 +29,26 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  overflow: hidden; /* はみ出し防止 */
+  overflow: hidden;
 }
 
-/* カメラ領域：画面の 40% を使う */
+/* カメラ領域：画面の 35% */
 .video-area {
-  flex: 0 0 40%;
-  max-height: 40%;
+  flex: 0 0 35%;
+  max-height: 35%;
 }
 
 .video-area video {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 画面に収める */
+  object-fit: cover;
   background: black;
 }
 
-/* グラフ領域：画面の 60% を使う */
+/* グラフ領域：画面の 65% */
 .chart-area {
   flex: 1;
-  max-height: 60%;
+  max-height: 65%;
 }
 
 .chart-area canvas {
