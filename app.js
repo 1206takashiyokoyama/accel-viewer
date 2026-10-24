@@ -1,5 +1,4 @@
 let measuring = false;
-let dataLog = [];
 const MAX_POINTS = 300;
 
 // Chart.js 初期化
@@ -27,16 +26,6 @@ const chart = new Chart(ctx, {
 // 状態表示
 function setStatus(s) {
   document.getElementById("status").textContent = "状態: " + s;
-}
-
-// iOS向けセンサー許可
-async function requestPermission() {
-  if (DeviceMotionEvent.requestPermission) {
-    const res = await DeviceMotionEvent.requestPermission();
-    setStatus(res === "granted" ? "センサー許可OK" : "拒否されました");
-  } else {
-    setStatus("許可不要");
-  }
 }
 
 // 計測開始
@@ -81,43 +70,18 @@ function onMotion(e) {
   const acc = e.accelerationIncludingGravity || e.acceleration;
   if (!acc) return;
 
-  const ts = performance.now();
   const x = acc.x || 0;
   const y = acc.y || 0;
   const z = acc.z || 0;
 
   updateChart(x, y, z);
-  dataLog.push({ ts, x, y, z });
-}
-
-// CSV保存
-function exportCSV() {
-  if (dataLog.length === 0) {
-    setStatus("データなし");
-    return;
-  }
-
-  let csv = "time_ms,x,y,z\n";
-  dataLog.forEach(d => {
-    csv += `${d.ts},${d.x},${d.y},${d.z}\n`;
-  });
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "accel_data.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-
-  setStatus("CSV保存完了");
 }
 
 // カメラ開始
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" } // 背面カメラ
+      video: { facingMode: "environment" }
     });
 
     const video = document.getElementById("camera");
@@ -130,8 +94,9 @@ async function startCamera() {
 }
 
 // ボタン紐付け
-document.getElementById("btnPermission").onclick = requestPermission;
-document.getElementById("btnStart").onclick = startMeasuring;
+document.getElementById("btnStart").onclick = () => {
+  startCamera();
+  startMeasuring();
+};
+
 document.getElementById("btnStop").onclick = stopMeasuring;
-document.getElementById("btnExport").onclick = exportCSV;
-document.getElementById("btnCamera").onclick = startCamera;
