@@ -1,7 +1,7 @@
 let measuring = false;
 const MAX_POINTS = 300;
 
-// Chart.js 初期化
+// Chart.js 初期化（縦軸固定 ±5 m/s²）
 const ctx = document.getElementById("chart").getContext("2d");
 const chart = new Chart(ctx, {
   type: "line",
@@ -18,7 +18,11 @@ const chart = new Chart(ctx, {
     responsive: true,
     scales: {
       x: { display: false },
-      y: { title: { display: true, text: "加速度 (m/s²)" } }
+      y: {
+        min: -5,     // ★縦軸固定（下限）
+        max: 5,      // ★縦軸固定（上限）
+        title: { display: true, text: "加速度 (m/s²)" }
+      }
     }
   }
 });
